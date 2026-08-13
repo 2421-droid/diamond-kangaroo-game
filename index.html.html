@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>🦘 Diamond Kangaroo Game</title>
+
+<style>
+
+* {
+    box-sizing: border-box;
+    user-select: none;
+}
+
+body {
+    margin: 0;
+    background: #171735;
+    font-family: Arial, sans-serif;
+    text-align: center;
+}
+
+h1 {
+    color: white;
+    margin: 12px 0;
+}
+
+#game {
+    position: relative;
+    width: 900px;
+    max-width: 95%;
+    height: 500px;
+    margin: auto;
+    overflow: hidden;
+    border: 5px solid white;
+    border-radius: 20px;
+
+    background:
+        linear-gradient(
+            #7ddcff 0%,
+            #bdefff 65%,
+            #74c850 65%
+        );
+}
+
+/* Clouds */
+
+.cloud {
+    position: absolute;
+    font-size: 55px;
+    opacity: 0.8;
+}
+
+.cloud1 {
+    top: 45px;
+    left: 100px;
+}
+
+.cloud2 {
+    top: 100px;
+    right: 120px;
+}
+
+/* Ground */
+
+#ground {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+
+    width: 100%;
+    height: 100px;
+
+    background: #55ad45;
+    border-top: 6px solid #378b32;
+}
+
+/* Kangaroo */
+
+#player {
+    position: absolute;
+
+    left: 100px;
+    bottom: 100px;
+
+    width: 70px;
+    height: 80px;
+
+    font-size: 60px;
+
+    z-index: 10;
+}
+
+/* Diamond */
+
+#diamond {
+    position: absolute;
+
+    width: 45px;
+    height: 45px;
+
+    right: -60px;
+    bottom: 220px;
+
+    font-size: 40px;
+
+    z-index: 5;
+
+    filter: drop-shadow(0 0 8px #b86cff);
+}
+
+/* Obstacle */
+
+#obstacle {
+    position: absolute;
+
+    right: -80px;
+    bottom: 100px;
+
+    font-size: 55px;
+
+    z-index: 6;
+}
+
+/* Score */
+
+#scoreboard {
+    color: white;
+    font-size: 22px;
+    font-weight: bold;
+
+    margin: 10px;
+}
+
+#scoreboard span {
+    margin: 0 10px;
+}
+
+/* Start screen */
+
+#startScreen,
+#gameOverScreen {
+
+    position: absolute;
+
+    top: 0;
+    left: 0;
+
+    width: 100%;
+    height: 100%;
+
+    background: rgba(0,0,0,0.65);
+
+    display: flex;
+    flex-direction: column;
+
+    justify-content: center;
+    align-items: center;
+
+    color: white;
+
+    z-index: 100;
+}
+
+#gameOverScreen {
+    display: none;
+}
+
+.title {
+    font-size: 40px;
+    margin-bottom: 10px;
+}
+
+.subtitle {
+    font-size: 20px;
+}
+
+button {
+
+    border: none;
+
+    padding: 14px 30px;
+
+    margin-top: 20px;
+
+    font-size: 20px;
+
+    border-radius: 15px;
+
+    background: #8d5cff;
+
+    color: white;
+
+    cursor: pointer;
+
+    box-shadow: 0 5px 0 #5832aa;
+}
+
+button:active {
+    transform: translateY(5px);
+    box-shadow: none;
+}
+
+/* Mobile instruction */
+
+#instruction {
+
+    color: white;
+
+    font-size: 16px;
+
+    margin-top: 10px;
+}
+
+</style>
+</head>
+
+<body>
+
+<h1>🦘 Diamond Kangaroo</h1>
+
+<div id="scoreboard">
+
+<span>🏆 Score: <b id="score">0</b></span>
+
+<span>💎 Diamonds: <b id="diamonds">0</b></span>
+
+</div>
+
+
+<div id="game">
+
+    <!-- Clouds -->
+
+    <div class="cloud cloud1">☁️</div>
+    <div class="cloud cloud2">☁️</div>
+
+
+    <!-- Player -->
+
+    <div id="player">🦘</div>
+
+
+    <!-- Diamond -->
+
+    <div id="diamond">💎</div>
+
+
+    <!-- Obstacle -->
+
+    <div id="obstacle">🌵</div>
+
+
+    <!-- Ground -->
+
+    <div id="ground"></div>
+
+
+    <!-- Start Screen -->
+
+    <div id="startScreen">
+
+        <div class="title">
+            🦘 Diamond Kangaroo
+        </div>
+
+        <div class="subtitle">
+            Collect the 💎 and avoid the 🌵
+        </div>
+
+        <button onclick="startGame()">
+            ▶️ START GAME
+        </button>
+
+    </div>
+
+
+    <!-- Game Over -->
+
+    <div id="gameOverScreen">
+
+        <div class="title">
+            Game Over 😭
+        </div>
+
+        <div class="subtitle">
+            Your Score:
+            <b id="finalScore">0</b>
+        </div>
+
+        <div class="subtitle">
+            💎 Diamonds:
+            <b id="finalDiamonds">0</b>
+        </div>
+
+        <button onclick="restartGame()">
+            🔄 PLAY AGAIN
+        </button>
+
+    </div>
+
+</div>
+
+
+<div id="instruction">
+    💻 Press SPACE / ↑ to jump &nbsp; | &nbsp;
+    📱 Tap the screen
+</div>
+
+
+<script>
+
+/* =========================
+   GAME VARIABLES
+========================= */
+
+const player =
+document.getElementById("player");
+
+const obstacle =
+document.getElementById("obstacle");
+
+const diamond =
+document.getElementById("diamond");
+
+const scoreText =
+document.getElementById("score");
+
+const diamondText =
+document.getElementById("diamonds");
+
+const startScreen =
+document.getElementById("startScreen");
+
+const gameOverScreen =
+document.getElementById("gameOverScreen");
+
+const finalScore =
+document.getElementById("finalScore");
+
+const finalDiamonds =
+document.getElementById("finalDiamonds");
+
+
+let gameRunning = false;
+
+let gameOver = false;
+
+let jumping = false;
+
+let score = 0;
+
+let diamonds = 0;
+
+let obstacleX = -80;
+
+let diamondX = -60;
+
+let speed = 6;
+
+
+/* =========================
+   START GAME
+========================= */
+
+function startGame() {
+
+    gameRunning = true;
+
+    gameOver = false;
+
+    score = 0;
+
+    diamonds = 0;
+
+    speed = 7;
+
+    obstacleX = -80;
+
+    diamondX = -60;
+
+    scoreText.innerText = score;
+
+    diamondText.innerText = diamonds;
+
+    startScreen.style.display = "none";
+
+    gameOverScreen.style.display = "none";
+
+    obstacle.style.right = "-80px";
+
+    diamond.style.right = "-60px";
+
+    gameLoop();
+
+}
+
+
+/* =========================
+   JUMP
+========================= */
+
+function jump() {
+
+    if (!gameRunning ||
+        jumping ||
+        gameOver) return;
+
+    jumping = true;
+
+    let height = 0;
+
+    let up = setInterval(function() {
+
+        height += 9;
+
+        player.style.bottom =
+        (100 + height) + "px";
+
+
+        if (height >= 190) {
+
+            clearInterval(up);
+
+            let down =
+            setInterval(function() {
+
+                height -= 9;
+
+                player.style.bottom =
+                (100 + height) + "px";
+
+
+                if (height <= 0) {
+
+                    clearInterval(down);
+
+                    player.style.bottom =
+                    "100px";
+
+                    jumping = false;
+
+                }
+
+            }, 20);
+
+        }
+
+    }, 20);
+
+}
+
+
+/* =========================
+   GAME LOOP
+========================= */
+
+function gameLoop() {
+
+    if (!gameRunning ||
+        gameOver) return;
+
+
+    /* Move obstacle */
+
+    obstacleX += speed;
+
+    obstacle.style.right =
+    obstacleX + "px";
+
+
+    /* Reset obstacle */
+
+    if (obstacleX > 950) {
+
+        obstacleX = -80;
+
+        score++;
+
+        scoreText.innerText =
+        score;
+
+
+        /* Increase difficulty */
+
+        if (score % 5 === 0) {
+
+            speed += 1;
+
+        }
+
+    }
+
+
+    /* Move diamond */
+
+    diamondX += speed;
+
+    diamond.style.right =
+    diamondX + "px";
+
+
+    /* Reset diamond */
+
+    if (diamondX > 950) {
+
+        diamondX = -60;
+
+        /* Random height */
+
+        let heights = [
+            170,
+            220,
+            270,
+            320
+        ];
+
+        let randomHeight =
+        heights[
+            Math.floor(
+                Math.random() *
+                heights.length
+            )
+        ];
+
+        diamond.style.bottom =
+        randomHeight + "px";
+
+    }
+
+
+    checkObstacleCollision();
+
+    checkDiamondCollision();
+
+
+    requestAnimationFrame(gameLoop);
+
+}
+
+
+/* =========================
+   OBSTACLE COLLISION
+========================= */
+
+function checkObstacleCollision() {
+
+    let p =
+    player.getBoundingClientRect();
+
+    let o =
+    obstacle.getBoundingClientRect();
+
+
+    if (
+        p.right > o.left + 10 &&
+        p.left < o.right - 10 &&
+        p.bottom > o.top + 10 &&
+        p.top < o.bottom - 10
+    ) {
+
+        endGame();
+
+    }
+
+}
+
+
+/* =========================
+   DIAMOND COLLECTION
+========================= */
+
+function checkDiamondCollision() {
+
+    let p =
+    player.getBoundingClientRect();
+
+    let d =
+    diamond.getBoundingClientRect();
+
+
+    if (
+        p.right > d.left &&
+        p.left < d.right &&
+        p.bottom > d.top &&
+        p.top < d.bottom
+    ) {
+
+        diamonds++;
+
+        diamondText.innerText =
+        diamonds;
+
+
+        /* Move diamond away */
+
+        diamondX = -60;
+
+
+        /* Little celebration */
+
+        diamond.innerText = "✨";
+
+
+        setTimeout(function() {
+
+            diamond.innerText = "💎";
+
+        }, 200);
+
+    }
+
+}
+
+
+/* =========================
+   GAME OVER
+========================= */
+
+function endGame() {
+
+    gameOver = true;
+
+    gameRunning = false;
+
+    finalScore.innerText =
+    score;
+
+    finalDiamonds.innerText =
+    diamonds;
+
+    gameOverScreen.style.display =
+    "flex";
+
+}
+
+
+/* =========================
+   RESTART
+========================= */
+
+function restartGame() {
+
+    jumping = false;
+
+    player.style.bottom =
+    "100px";
+
+    startGame();
+
+}
+
+
+/* =========================
+   KEYBOARD
+========================= */
+
+document.addEventListener(
+"keydown",
+function(event) {
+
+    if (
+        event.code === "Space" ||
+        event.code === "ArrowUp"
+    ) {
+
+        event.preventDefault();
+
+        if (gameOver) {
+
+            restartGame();
+
+        } else {
+
+            jump();
+
+        }
+
+    }
+
+});
+
+
+/* =========================
+   MOBILE TOUCH
+========================= */
+
+document
+.getElementById("game")
+.addEventListener(
+"touchstart",
+function(event) {
+
+    event.preventDefault();
+
+    if (gameOver) {
+
+        restartGame();
+
+    } else {
+
+        jump();
+
+    }
+
+});
+
+
+/* =========================
+   MOUSE CLICK
+========================= */
+
+document
+.getElementById("game")
+.addEventListener(
+"click",
+function() {
+
+    if (
+        event.target.tagName === "BUTTON"
+    ) return;
+
+    if (gameOver) {
+
+        restartGame();
+
+    } else if (gameRunning) {
+
+        jump();
+
+    }
+
+});
+
+</script>
+
+</body>
+</html>
